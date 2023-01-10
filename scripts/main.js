@@ -17,6 +17,7 @@ class Controller extends Phaser.Scene {
       this.load.image('button', 'assets/button.png');
       this.load.image('chainsaw', 'assets/chainsaw.png')
       this.load.image('cursor', 'assets/cursor.png')
+      this.load.image('fence', 'assets/fence.png')
   }
 
   create ()
@@ -142,11 +143,12 @@ class title extends Phaser.Scene {
   var angle;
   var target;
   var spawnNum = 8;
-  var playerLevel = 1;
+  var playerLevel = 0;
   var isLeft = false;
   var isRight = false;
   var isUp = false;
   var isDown = false;
+  var xp = 0;
 
 class mainScene extends Phaser.Scene {
 
@@ -213,6 +215,13 @@ function createZombies(){
  // }
 }
 
+// function getXP(playerLevel,zombiesKilled)
+// {
+//   xp = (zombiesKilled * playerLevel) + 1;
+//   xp = Math.ceil(xp)
+//   return(xp)
+// }
+
 //Touching logic
 this.physics.add.overlap(zombies.getChildren(), player,  function(zombie,player){
   //console.log("worked");
@@ -258,6 +267,8 @@ function shootBullet(isLeft,isRight,isUp,isDown){
   bullets.add(b);
   max=4;
   min=1;
+  
+
   random = Math.floor(Math.random() * (max - min + 1) + min)
   
   if ((this.cursors.left.isDown || this.a.isDown) || (this.cursors.right.isDown || this.d.isDown)) b.setVelocityX(this.cursors.left.isDown || this.a.isDown ? -BULLET_MOVE_SPEED : BULLET_MOVE_SPEED);
@@ -343,6 +354,7 @@ this.physics.add.collider(circle,zombies, function(circle,zombie)
 //Chainsaws kill zombies
 this.physics.add.overlap(chainsaws, zombies,  function(chainsaw, zombie){       
     zombie.destroy();
+    //getXP(playerLevel, xp);
     zombiesKilled++;
     player.data.values.zombiesKilled++;
     player.data.values.zombieCount--;
@@ -355,7 +367,7 @@ text.setText([
     'Wave Number:' + player.getData('wave'),
     'Zombies Killed:' + player.getData('zombiesKilled'),
     'Zombie Count:' + player.getData('zombieCount'),
-    //'Level:' + player.getData('playerLevel')
+    'Level:' + player.getData('playerLevel')
   ])
 
 player.on('changedata',function(gameObject,key,value){
@@ -364,7 +376,7 @@ player.on('changedata',function(gameObject,key,value){
     'Wave Number:' + player.getData('wave'),
     'Zombies Killed:' + player.getData('zombiesKilled'),
     'Zombie Count:' + player.getData('zombieCount'),
-    //'Level:' + player.getData('playerLevel')
+    'Level:' + player.getData('playerLevel')
 ]);
 })
 
@@ -377,17 +389,18 @@ points = circle.getPoints(spawnNum);
 //Update per wave
 function updateCounter(){
 waveNumber++;
-player.data.values.wave++;
+player.data.values.waveNumber++;
 shootSpeed = shootSpeed + (250 * zombiesKilled)
 // z = zombies.getChildren()
 player.data.values.zombieCount = player.data.values.zombieCount + spawnNum
 zombieCount = zombieCount + spawnNum;
 //player.data.values.zombieCount + spawnNum;
 zombieSpeed = zombieSpeed + waveNumber*1.0025;
+//player.data.values.playerLevel = Math.ceil(zombiesKilled / 5);
 console.log("wave:" + waveNumber);
 console.log("health:" + playerHealth);
-console.log("zombies:" + zombieCount)
-console.log("level:" + playerLevel)
+console.log("zombies:" + player.data.values.zombieCount)
+console.log("level:" + player.data.values.playerLevel)
 //console.log("test:" + bullets.lifespan);
 }
 
@@ -432,12 +445,12 @@ healTimer = this.time.addEvent({ delay: 500, callback: passiveHeal, callbackScop
 //this.input.setDefaultCursor('bullet', pointer);
 
 
-cursor = this.add.sprite(0, 0, 'bullet').setInteractive({ cursor: 'cursor' }).setScale(2);
+cursor = this.add.sprite(0, 0, 'fence').setInteractive({ cursor: 'cursor' }).setScale(0.25);
 
 this.input.on('pointermove', function (pointer)
 {
 cursor.setVisible(true).setPosition(pointer.x, pointer.y);
-chainsaw.setPosition(pointer.x,pointer.y)
+//chainsaw.setPosition(pointer.x,pointer.y)
 });
 
 container = this.add.container(600, 300);
@@ -448,18 +461,7 @@ update() {
 function killLegs(){
   PLAYER_MOVE_SPEED = 0;
 }
-// function killDistance(player, zombie){
-//   var dist = Phaser.Math.Distance.Between(player,zombie)
-//   if(dist >= 2)
-//   {
-//     zombie.destroy()
-//   }
-// }
-// killDistance()
-//chainsaw.rotation = target;
-// chainsaw.x=player.x+2
-// chainsaw.y=player.y-2
-//var dist = Phaser.Math.Angle.BetweenPoints(player.x, zombie.x)
+player.data.values.playerLevel = Math.ceil(zombiesKilled / 5);
 Phaser.Actions.RotateAroundDistance(chainsaws.getChildren(), { x: player.x, y: player.y }, 0.035, 20);
 
 // chainsaws.getChildren().rotate = Phaser.Math.Angle.BetweenPoints(chainsaw, zombies.getChildren())
@@ -477,6 +479,7 @@ else player.setVelocityY(0);
 if (cursors.left.isDown)
 {
   isLeft = true;
+  //LastDown=true;
 }
 else
 {
@@ -485,6 +488,7 @@ else
 if (cursors.right.isDown)
 {
   isRight = true;
+  //LastDown=true;
 }
 else
 {
@@ -493,19 +497,22 @@ else
 if (cursors.up.isDown)
 {
   isUp = true;
+  //LastDown=true;
 }
 else
 {
   isUp = false;
 }
- if (cursors.down.isDown)
+if (cursors.down.isDown)
 {
   isDown = true;
+  //LastDown=true;
 }
 else
 {
   isDown = false;
 }
+
 
 //Camera
 const cam = this.cameras.main.setSize(1280, 720);
@@ -537,7 +544,7 @@ else
   ZOMBIE_MOVE_SPEED = zombieSpeed;
   PLAYER_MOVE_SPEED = playerSpeed;
 }
-
+//If Health Reaches Zero = Game O
 if(playerHealth <= 0)
 {
   isGameover = true;
@@ -563,19 +570,17 @@ else{
 
 touching = false;
 if (player.x < 220){
-  text.x=player.body.position.x +60;
+  text.x=player.body.position.x + 60;
   text.y=player.body.position.y - 110;
 }
 else if(player.x > 1060){
-  text.x=player.body.position.x-145;
+  text.x=player.body.position.x - 145;
   text.y=player.body.position.y - 110;
 }
 else{
   text.x=player.body.position.x - 200;
   text.y=player.body.position.y - 110; 
 }  
-
-//zombieCount = zombies.countActive(true).length
 
 }
 
@@ -643,11 +648,12 @@ class deathScreen extends Phaser.Scene {
       player.data.values.wave = 0;
       player.data.values.zombiesKilled = 0;
       player.data.values.zombieCount = 0;
-      player.data.values.playerLevel = 1;
+      player.data.values.playerLevel = 0;
       zombieCount = 0;
       waveNumber = 0;
       zombieSpeed = 55;
-      playerLevel = 1;
+      playerLevel = 0;
+      zombiesKilled = 0;
       //explosion()
       //shootSpeed = 9000;
      
@@ -695,13 +701,12 @@ class deathScreen extends Phaser.Scene {
   }
 
 }
+
 var target
 var randomEnemy
 var humans
 
 class SceneB extends Phaser.Scene {
-
-
 
   constructor ()
   {
@@ -769,22 +774,24 @@ this.cursors = this.input.keyboard.createCursorKeys();
     
   //   this.physics.moveToObject(player,target,ZOMBIE_MOVE_SPEED);
   // }
- 
+
   var moveDirection = this.time.addEvent({ delay: 25,   callback: moveDirection, callbackScope: this, loop: true});  
-   var peopleMake = this.time.addEvent({delay: 500, callback: makePeople, callbackScope: this, loop: true});
+  var peopleMake = this.time.addEvent({delay: 500, callback: makePeople, callbackScope: this, loop: true});
     // var moving = this.time.addEvent({ delay: 50,   callback: moveToPlayer, callbackScope: this, loop: true});
+  //var infect = this.time.addEvent({ delay: 25,   callback: infect, callbackScope: this, loop: true});  
   
-  function infect(){
-    let x=bob.body.position.x
-    let y=bob.body.position.y
-    //let z = this.add.existing(new zombie(this,x,y,'zombie'));
-    //zombies.add(z)
-  }
+  // function infect(bob){
+  //   //let x=bob.body.position.x
+  //   //let y=bob.body.position.y
+  //   let z = this.add.existing(new zombie(this,bob.x,bob.y,'z'));
+  //   //let z = this.add.existing(new zombie(this,x,y,'zombie'));
+  //   //zombies.add(z)
+  // }
     
   this.physics.add.overlap(humans.getChildren(), bob,  function(human,bob){
     
     human.destroy()
-    infect()
+    // infect()
     // let z = this.add.existing(new zombie(this,x,y,'zombie'));
     // //zombies.add(z)
     //infect(human)
@@ -808,7 +815,6 @@ this.cameras.main.startFollow(bob, true);
   }
 
 }
-
 
 var config = {
   type: Phaser.AUTO,
