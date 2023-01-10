@@ -1,0 +1,19 @@
+/** {
+	margin: 0;
+  background: grey
+}
+*/
+html{
+  
+  margin: 0;
+  text-align:center;
+  
+  background: grey;
+
+},
+body {
+	width: 100%;
+	height: 100%;
+   }
+},
+
